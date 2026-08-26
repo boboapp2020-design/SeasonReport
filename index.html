@@ -369,7 +369,6 @@
           <div class="field"><label>วันเปิดหีบ</label><input type="date" id="ML_open"></div>
           <div class="field"><label>วันปิดหีบ (ถ้าปิดแล้ว)</label><input type="date" id="ML_close"></div>
         </div>
-        <div class="field" style="margin-top:10px;"><label>หมายเหตุ (แสดงบนแดชบอร์ด)</label><textarea id="ML_note" rows="2"></textarea></div>
       </fieldset>
       <fieldset><legend>แม่สอด</legend>
         <div class="grid">
@@ -378,7 +377,6 @@
           <div class="field"><label>วันเปิดหีบ</label><input type="date" id="MEA_open"></div>
           <div class="field"><label>วันปิดหีบ (ถ้าปิดแล้ว)</label><input type="date" id="MEA_close"></div>
         </div>
-        <div class="field" style="margin-top:10px;"><label>หมายเหตุ (แสดงบนแดชบอร์ด)</label><textarea id="MEA_note" rows="2"></textarea></div>
       </fieldset>
     </div>
     <button class="btn green" style="margin-top:12px;" onclick="saveConfig()">💾 บันทึกการตั้งค่า</button>
@@ -627,7 +625,6 @@ function loadConfigForm(){
   for(const f of ['ML','MEA']){
     $(f+'_po').value=db.config[f].po??''; $(f+'_p1').value=db.config[f].p1??'';
     $(f+'_open').value=db.config[f].open??''; $(f+'_close').value=db.config[f].close??'';
-    $(f+'_note').value=db.config[f].note??'';
   }
   $('cfg_season').value=db.config.season||'2026/27'; $('cfg_prev').value=db.config.prev||'2025/26';
 }
@@ -635,7 +632,7 @@ function saveConfig(){
   for(const f of ['ML','MEA']){
     db.config[f].po=numOrNull(f+'_po'); db.config[f].p1=numOrNull(f+'_p1');
     db.config[f].open=$(f+'_open').value||null; db.config[f].close=$(f+'_close').value||null;
-    db.config[f].note=$(f+'_note').value;
+    // หมายเหตุไม่แก้ที่นี่ (ย้ายไปกรอกในหน้าบันทึกข้อมูลแล้ว)
   }
   db.config.season=$('cfg_season').value.trim()||'2026/27'; db.config.prev=$('cfg_prev').value.trim()||'2025/26';
   persist(); flash('บันทึกการตั้งค่าแล้ว ✓');
