@@ -106,6 +106,21 @@
   }
   .dash{width:100%; min-width:1150px;}
   .dash-scroll{overflow-x:auto; border-radius:calc(var(--radius) - 6px);}
+  #dashWrap{position:relative;}
+  .date-hidden{position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; border:0; padding:0;}
+  /* ปุ่มไอคอนมุมขวาบน */
+  .dash-actions{position:absolute; top:16px; right:18px; z-index:5; display:flex; gap:8px;}
+  .icon-btn{width:40px; height:40px; border:0; border-radius:12px; cursor:pointer; font-size:18px;
+    background:rgba(255,255,255,.92); color:#0B3B60; box-shadow:0 6px 16px -6px rgba(0,60,100,.5), inset 0 1px 0 rgba(255,255,255,.9);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s; line-height:1; display:flex; align-items:center; justify-content:center;}
+  .icon-btn:hover{transform:translateY(-2px); background:#fff; box-shadow:0 10px 22px -8px rgba(0,60,100,.55);}
+  .icon-btn:active{transform:translateY(0);}
+  .icon-btn.busy{opacity:.6; cursor:progress;}
+  /* กล่องวันที่คลิกได้ */
+  .datebox{cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;}
+  .datebox:hover{transform:translateY(-1px) scale(1.03);}
+  .datebox .cal{font-size:.7em; margin-right:6px; vertical-align:middle; opacity:.75;}
+  .dash-foot{text-align:right; font-size:12.5px; color:#8794a1; padding:8px 6px 2px;}
   .dash-header{
     background:linear-gradient(135deg,#00BBFA 0%, var(--hdr-blue) 45%, #0092D8 100%);
     text-align:center; padding:20px 0 17px; position:relative; overflow:hidden;
@@ -186,7 +201,7 @@
   /* print */
   @media print{
     body{background:#fff;}
-    .appbar, .toolbar, .tabs, .flash{display:none !important;}
+    .appbar, .toolbar, .tabs, .flash, .no-print, .dash-actions{display:none !important;}
     .page{display:none !important; padding:0;}
     #page-dash{display:block !important;}
     #dashWrap{box-shadow:none; padding:0; border:none; border-radius:0;}
@@ -279,15 +294,16 @@
 
 <!-- ═══════════ PAGE: DASHBOARD ═══════════ -->
 <div class="page active" id="page-dash">
-  <div class="toolbar">
-    <label>ประจำวันที่</label>
-    <input type="date" id="dashDate" onchange="renderDash()">
-    <button class="btn" onclick="gotoLatest()">ล่าสุด</button>
-    <button class="btn gray" onclick="window.print()">🖨️ พิมพ์ / PDF</button>
-    <button class="btn green" onclick="pullFromCloud(true)">⟳ ดึงข้อมูลจากคลาวด์</button>
-    <span class="hint" id="dashStamp"></span>
+  <!-- ตัวเลือกวันที่ (ซ่อนไว้ เรียกผ่านการคลิกกล่องวันที่สีเหลืองในหัวรายงาน) -->
+  <input type="date" id="dashDate" onchange="renderDash()" class="date-hidden">
+  <div id="dashWrap">
+    <div class="dash-actions no-print">
+      <button class="icon-btn" id="btnPull" title="ดึงข้อมูลจากคลาวด์" onclick="pullFromCloud(true)">⟳</button>
+      <button class="icon-btn" title="บันทึกเป็นรูปภาพ (PNG)" onclick="savePic()">📷</button>
+      <button class="icon-btn" title="บันทึกเป็น PDF" onclick="savePdf()">📄</button>
+    </div>
+    <div class="dash-scroll"><div class="dash" id="dashInner"></div></div>
   </div>
-  <div id="dashWrap"><div class="dash-scroll"><div class="dash" id="dashInner"></div></div></div>
 </div>
 
 <!-- ═══════════ PAGE: INPUT (คู่เปรียบเทียบ) ═══════════ -->
@@ -378,6 +394,7 @@
   </div>
 </div>
 
+<script src="html2canvas.min.js"></script>
 <script>
 'use strict';
 /* ══════════════ Data layer ══════════════ */
@@ -786,7 +803,7 @@ function renderDash(){
   $('dashInner').innerHTML = `
   <div class="dash-header">
     <div class="title">รายงานเปรียบเทียบ [ มิตรลาว &amp; แม่สอด ]</div>
-    <div class="dateline">ประจำวันที่ <span class="datebox">${thDate(dispDate)}</span></div>
+    <div class="dateline">ประจำวันที่ <span class="datebox" onclick="openDatePicker()" title="คลิกเพื่อเลือกวันที่"><span class="cal">📅</span>${thDate(dispDate)}</span></div>
   </div>
   <table class="rep">
     <colgroup>
@@ -835,10 +852,38 @@ function renderDash(){
       <div class="gauge-head mea">แม่สอด</div>
       <div class="gauge-box">${gaugeSvg(meaAct, cf.MEA.p1, meaPct.toFixed(2)+'%')}</div>
     </div>
-  </div>`;
-  $('dashStamp').textContent = `ข้อมูล ณ ${new Date().toLocaleString('th-TH')} · เป้า P1: มิตรลาว ${fmt(cf.ML.p1)} ตัน / แม่สอด ${fmt(cf.MEA.p1)} ตัน`;
+  </div>
+  <div class="dash-foot">ข้อมูล ณ ${new Date().toLocaleString('th-TH')}</div>`;
   fitDashToScreen();
 }
+
+/* เปิดตัวเลือกวันที่จากการคลิกกล่องวันที่สีเหลือง */
+function openDatePicker(){
+  const inp = $('dashDate');
+  try{ inp.showPicker(); }
+  catch(e){ inp.focus(); inp.click(); }
+}
+/* บันทึกเป็นรูปภาพ PNG */
+async function savePic(btn){
+  const dash = $('dashInner'); const wrap = $('dashWrap');
+  const pt=dash.style.transform, pw=dash.style.width, ph=wrap.style.height, sc=dash.parentElement.style.overflow;
+  dash.style.transform=''; dash.style.width=''; wrap.style.height=''; dash.parentElement.style.overflow='';
+  document.querySelectorAll('.dash-actions').forEach(el=>el.style.visibility='hidden');
+  try{
+    const canvas = await html2canvas(dash, {scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false});
+    const a=document.createElement('a');
+    a.download = `รายงาน มิตรลาว-แม่สอด ${thDate($('dashDate').value)}.png`;
+    a.href = canvas.toDataURL('image/png'); a.click();
+    flash('บันทึกรูปภาพแล้ว ✓');
+  }catch(err){ flash('บันทึกรูปไม่สำเร็จ: '+err.message, false); }
+  finally{
+    dash.style.transform=pt; dash.style.width=pw; wrap.style.height=ph; dash.parentElement.style.overflow=sc;
+    document.querySelectorAll('.dash-actions').forEach(el=>el.style.visibility='');
+    fitDashToScreen();
+  }
+}
+/* บันทึกเป็น PDF (ผ่านหน้าต่างพิมพ์ → เลือกบันทึกเป็น PDF) */
+function savePdf(){ window.print(); }
 
 /* ══════ Responsive: จอแคบกว่าแดชบอร์ด → ย่อทั้งผืนตามสัดส่วนเดิม (ratio คงเดิม เห็นครบ) ══════ */
 const DASH_MIN_W = 1150;   // ตรงกับ .dash{min-width}
