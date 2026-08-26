@@ -731,25 +731,36 @@ function gaugeSvg(actual, target){
     const large=(to-from)>0.5?1:0;
     return `<path d="M${x1} ${y1} A${R} ${R} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r} ${r} 0 ${large} 0 ${x4} ${y4} Z" fill="${fill}"/>`;
   };
-  // ── ตัวเลขกลางเกจ ──
-  let center;
-  if(actual <= 0){
-    // ยังไม่หีบ → เลขเดียว = อ้อยที่เหลือถึงเป้า (= เป้าหมาย)
-    center = `<text x="${cx}" y="${cy-30}" text-anchor="middle" font-size="34" font-weight="800" fill="#00A2E8">${fmt(remain)}</text>
-      <text x="${cx}" y="${cy-8}" text-anchor="middle" font-size="13" fill="#9aa6b0">อ้อยที่เหลือถึงเป้า (ตัน)</text>`;
+  // ── ป้ายเลข: อ้อยหีบแล้วเกาะปลายแถบสี (วิ่งตามเมื่อโต) · อ้อยเหลืออยู่ที่ปลายเป้า ──
+  const rm=(R+r)/2;                       // รัศมีกลางแถบ
+  // อ้อยเหลือถึงเป้า — มุมล่างขวา (จุดเป้า 100%)
+  let remainLabel;
+  if(actual<=0){
+    remainLabel = `<text x="${cx+R}" y="${cy+20}" text-anchor="end" font-size="30" font-weight="800" fill="#00A2E8">${fmt(remain)}</text>
+      <text x="${cx+R}" y="${cy+37}" text-anchor="end" font-size="11.5" fill="#9aa6b0">อ้อยเหลือถึงเป้า (ตัน)</text>`;
   } else {
-    // หีบแล้ว → อ้อยเข้าหีบสะสม + (อ้อยที่เหลือ)
-    center = `<text x="${cx}" y="${cy-56}" text-anchor="middle" font-size="12" fill="#9aa6b0">อ้อยเข้าหีบสะสม (ตัน)</text>
-      <text x="${cx}" y="${cy-28}" text-anchor="middle" font-size="34" font-weight="800" fill="#00A2E8">${fmt(actual)}</text>
-      <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="19" font-weight="700" fill="#8a949e">(${fmt(remain)})</text>`;
+    remainLabel = `<text x="${cx+R}" y="${cy+21}" text-anchor="end" font-size="22" font-weight="700" fill="#8a949e">(${fmt(remain)})</text>
+      <text x="${cx+R}" y="${cy+37}" text-anchor="end" font-size="11" fill="#9aa6b0">อ้อยเหลือ (ตัน)</text>`;
   }
-  return `<svg viewBox="0 0 420 210" style="width:100%; max-width:600px;">
+  // อ้อยหีบแล้ว — เกาะปลายสีเขียว
+  let crushedLabel='';
+  if(actual>0){
+    const ang=Math.PI*(1-pct);
+    const dx=cx+rm*Math.cos(ang), dy=cy-rm*Math.sin(ang);       // จุดปลายบนแถบ
+    const rlab=R+16, lx=cx+rlab*Math.cos(ang), ly=cy-rlab*Math.sin(ang)-2;
+    const anchor = pct<0.42?'start':(pct>0.58?'end':'middle');
+    crushedLabel = `<circle cx="${dx}" cy="${dy}" r="5.5" fill="#1E7A1E" stroke="#fff" stroke-width="1.5"/>
+      <text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="24" font-weight="800" fill="#00A2E8">${fmt(actual)}</text>
+      <text x="${lx}" y="${ly-20}" text-anchor="${anchor}" font-size="11" fill="#9aa6b0">อ้อยเข้าหีบ (ตัน)</text>`;
+  }
+  return `<svg viewBox="0 -18 420 256" style="width:100%; max-width:600px;">
     <defs><linearGradient id="${gid}" x1="0%" y1="100%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#A6E06B"/><stop offset="60%" stop-color="#4CAF3E"/><stop offset="100%" stop-color="#1E7A1E"/>
     </linearGradient></defs>
     ${arc(0,1,'#E9E9E9')}
     ${pct>0? arc(0,pct,`url(#${gid})`):''}
-    ${center}
+    ${remainLabel}
+    ${crushedLabel}
   </svg>`;
 }
 function renderDash(){
