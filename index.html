@@ -716,8 +716,9 @@ function logoMEA(){
   return `<img class="logo logo-round" src="${LOGO_MEA}" alt="MAE SOD CLEAN ENERGY">`;
 }
 let _gaugeSeq = 0;
-function gaugeSvg(actual, target, pctLabel){
+function gaugeSvg(actual, target){
   const gid = 'gg' + (++_gaugeSeq);
+  actual = actual || 0;
   const pct = target? Math.max(0, Math.min(1, actual/target)) : 0;
   const remain = target? Math.max(0, target-actual) : 0;
   const cx=210, cy=195, R=150, r=82;
@@ -730,19 +731,25 @@ function gaugeSvg(actual, target, pctLabel){
     const large=(to-from)>0.5?1:0;
     return `<path d="M${x1} ${y1} A${R} ${R} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r} ${r} 0 ${large} 0 ${x4} ${y4} Z" fill="${fill}"/>`;
   };
-  return `<svg viewBox="0 0 480 220" style="width:100%; max-width:640px;">
+  // ── ตัวเลขกลางเกจ ──
+  let center;
+  if(actual <= 0){
+    // ยังไม่หีบ → เลขเดียว = อ้อยที่เหลือถึงเป้า (= เป้าหมาย)
+    center = `<text x="${cx}" y="${cy-30}" text-anchor="middle" font-size="34" font-weight="800" fill="#00A2E8">${fmt(remain)}</text>
+      <text x="${cx}" y="${cy-8}" text-anchor="middle" font-size="13" fill="#9aa6b0">อ้อยที่เหลือถึงเป้า (ตัน)</text>`;
+  } else {
+    // หีบแล้ว → อ้อยเข้าหีบสะสม + (อ้อยที่เหลือ)
+    center = `<text x="${cx}" y="${cy-56}" text-anchor="middle" font-size="12" fill="#9aa6b0">อ้อยเข้าหีบสะสม (ตัน)</text>
+      <text x="${cx}" y="${cy-28}" text-anchor="middle" font-size="34" font-weight="800" fill="#00A2E8">${fmt(actual)}</text>
+      <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="19" font-weight="700" fill="#8a949e">(${fmt(remain)})</text>`;
+  }
+  return `<svg viewBox="0 0 420 210" style="width:100%; max-width:600px;">
     <defs><linearGradient id="${gid}" x1="0%" y1="100%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#A6E06B"/><stop offset="60%" stop-color="#4CAF3E"/><stop offset="100%" stop-color="#1E7A1E"/>
     </linearGradient></defs>
-    <g transform="translate(30,0)">
     ${arc(0,1,'#E9E9E9')}
     ${pct>0? arc(0,pct,`url(#${gid})`):''}
-    <line x1="${cx-R*0.62}" y1="${cy-R*0.80}" x2="${cx-R*0.40}" y2="${cy-R*0.96}" stroke="#999" stroke-width="1.2"/>
-    <text x="${cx-R*0.66}" y="${cy-R*0.84}" text-anchor="end" font-size="15" font-weight="bold" fill="#0070C0">${fmt(actual)}</text>
-    <line x1="${cx+R*0.94}" y1="${cy-12}" x2="${cx+R+16}" y2="${cy-26}" stroke="#999" stroke-width="1.2"/>
-    <text x="${cx+R+20}" y="${cy-21}" font-size="14" font-weight="bold" fill="#8a8a8a">${fmt(remain)}</text>
-    <text x="${cx}" y="${cy-14}" text-anchor="middle" font-size="28" font-weight="800" fill="#00A2E8">${pctLabel}</text>
-    </g>
+    ${center}
   </svg>`;
 }
 function renderDash(){
@@ -846,11 +853,11 @@ function renderDash(){
   <div class="gauge-row">
     <div class="gauge-col">
       <div class="gauge-head ml">มิตรลาว</div>
-      <div class="gauge-box">${gaugeSvg(mlAct, cf.ML.p1, mlPct.toFixed(2)+'%')}</div>
+      <div class="gauge-box">${gaugeSvg(mlAct, cf.ML.p1)}</div>
     </div>
     <div class="gauge-col">
       <div class="gauge-head mea">แม่สอด</div>
-      <div class="gauge-box">${gaugeSvg(meaAct, cf.MEA.p1, meaPct.toFixed(2)+'%')}</div>
+      <div class="gauge-box">${gaugeSvg(meaAct, cf.MEA.p1)}</div>
     </div>
   </div>
   <div class="dash-foot">ข้อมูล ณ ${new Date().toLocaleString('th-TH')}</div>`;
