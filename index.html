@@ -735,11 +735,11 @@ function gaugeSvg(actual, target){
   // อ้อยเหลือถึงเป้า — มุมล่างขวา (จุดเป้า 100%)
   let remainLabel;
   if(actual<=0){
-    remainLabel = `<text x="${cx+R}" y="${cy+19}" text-anchor="end" font-size="20" font-weight="800" fill="#00A2E8">${fmt(remain)}</text>
-      <text x="${cx+R}" y="${cy+33}" text-anchor="end" font-size="10" fill="#9aa6b0">อ้อยเหลือถึงเป้า (ตัน)</text>`;
+    remainLabel = `<text x="${cx+R}" y="${cy+18}" text-anchor="end" font-size="15" font-weight="800" fill="#00A2E8">${fmt(remain)}</text>
+      <text x="${cx+R}" y="${cy+31}" text-anchor="end" font-size="9" fill="#9aa6b0">อ้อยเหลือถึงเป้า (ตัน)</text>`;
   } else {
-    remainLabel = `<text x="${cx+R}" y="${cy+19}" text-anchor="end" font-size="15" font-weight="700" fill="#8a949e">(${fmt(remain)})</text>
-      <text x="${cx+R}" y="${cy+33}" text-anchor="end" font-size="9.5" fill="#9aa6b0">อ้อยเหลือ (ตัน)</text>`;
+    remainLabel = `<text x="${cx+R}" y="${cy+18}" text-anchor="end" font-size="13" font-weight="700" fill="#8a949e">(${fmt(remain)})</text>
+      <text x="${cx+R}" y="${cy+31}" text-anchor="end" font-size="8.5" fill="#9aa6b0">อ้อยเหลือ (ตัน)</text>`;
   }
   // อ้อยหีบแล้ว — เกาะปลายสีเขียว (เลขวางเข้าด้านในวง ไม่ล้นออกนอกกราฟ)
   let crushedLabel='';
