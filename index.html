@@ -2,8 +2,23 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>รายงานเปรียบเทียบ มิตรลาว & แม่สอด</title>
+<!-- ═══ PWA: ติดตั้งลงมือถือ/แท็บเล็ต/PC เป็นแอปได้ ═══ -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0B3B60">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ML-MEA Report">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<script>
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -398,12 +413,13 @@ function lyRefFor(fac, dayN){
 /* ค่า "ปีก่อน" สำหรับแดชบอร์ด:
    - มีข้อมูลฤดูนี้แล้ว → ใช้ ly ที่บันทึกคู่กับรายการ (เทียบวันหีบต่อวันหีบ)
    - ยังไม่มีข้อมูลฤดูนี้ → แสดงยอดปิดฤดูก่อน (ค่าสุดท้ายของ 2025/26) */
+// ค่า "ปีก่อน" เทียบวันหีบต่อวันหีบ:
+//  - มีข้อมูลฤดูนี้แล้ว → ใช้ ly ที่บันทึกคู่รายการ (ตรงวันหีบเดียวกัน)
+//  - ยังไม่เริ่มหีบฤดูนี้ (ไม่มี entry) → แสดง "-" (ยังไม่มีวันหีบให้เทียบ)
+//    พอกรอกวันที่ 1 ของฤดูนี้ ระบบจะโชว์วันหีบที่ 1 ของปีก่อนขึ้นมาเทียบเอง
 function lyVal(entry, fac, key){
   if(entry) return entry.ly ? entry.ly[key] : null;
-  const arr = LY_REF[fac] || [];
-  const ref = arr.length ? arr[arr.length-1] : null;
-  if(!ref) return null;
-  return key==='days' ? ref.d : ref[key];
+  return null;
 }
 let db = load();
 function load(){
