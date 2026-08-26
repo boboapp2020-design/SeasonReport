@@ -731,27 +731,29 @@ function gaugeSvg(actual, target){
     const large=(to-from)>0.5?1:0;
     return `<path d="M${x1} ${y1} A${R} ${R} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r} ${r} 0 ${large} 0 ${x4} ${y4} Z" fill="${fill}"/>`;
   };
-  // ── ป้ายเลข: อ้อยหีบแล้วเกาะปลายแถบสี (วิ่งตามเมื่อโต) · อ้อยเหลืออยู่ที่ปลายเป้า ──
+  // ── % กลางเกจ + อ้อยหีบเกาะปลายสีเขียว + อ้อยเหลือที่ปลายเป้า ──
   const rm=(R+r)/2;                       // รัศมีกลางแถบ
+  const pctLabel = (pct*100).toFixed(2)+'%';
+  const pctText = `<text x="${cx}" y="${cy-16}" text-anchor="middle" font-size="30" font-weight="800" fill="#00A2E8">${pctLabel}</text>`;
   // อ้อยเหลือถึงเป้า — มุมล่างขวา (จุดเป้า 100%)
   let remainLabel;
   if(actual<=0){
-    remainLabel = `<text x="${cx+R}" y="${cy+20}" text-anchor="end" font-size="30" font-weight="800" fill="#00A2E8">${fmt(remain)}</text>
-      <text x="${cx+R}" y="${cy+37}" text-anchor="end" font-size="11.5" fill="#9aa6b0">อ้อยเหลือถึงเป้า (ตัน)</text>`;
+    remainLabel = `<text x="${cx+R}" y="${cy+19}" text-anchor="end" font-size="20" font-weight="800" fill="#00A2E8">${fmt(remain)}</text>
+      <text x="${cx+R}" y="${cy+33}" text-anchor="end" font-size="10" fill="#9aa6b0">อ้อยเหลือถึงเป้า (ตัน)</text>`;
   } else {
-    remainLabel = `<text x="${cx+R}" y="${cy+21}" text-anchor="end" font-size="22" font-weight="700" fill="#8a949e">(${fmt(remain)})</text>
-      <text x="${cx+R}" y="${cy+37}" text-anchor="end" font-size="11" fill="#9aa6b0">อ้อยเหลือ (ตัน)</text>`;
+    remainLabel = `<text x="${cx+R}" y="${cy+19}" text-anchor="end" font-size="15" font-weight="700" fill="#8a949e">(${fmt(remain)})</text>
+      <text x="${cx+R}" y="${cy+33}" text-anchor="end" font-size="9.5" fill="#9aa6b0">อ้อยเหลือ (ตัน)</text>`;
   }
-  // อ้อยหีบแล้ว — เกาะปลายสีเขียว
+  // อ้อยหีบแล้ว — เกาะปลายสีเขียว (เลขวางเข้าด้านในวง ไม่ล้นออกนอกกราฟ)
   let crushedLabel='';
   if(actual>0){
     const ang=Math.PI*(1-pct);
-    const dx=cx+rm*Math.cos(ang), dy=cy-rm*Math.sin(ang);       // จุดปลายบนแถบ
-    const rlab=R+16, lx=cx+rlab*Math.cos(ang), ly=cy-rlab*Math.sin(ang)-2;
-    const anchor = pct<0.42?'start':(pct>0.58?'end':'middle');
-    crushedLabel = `<circle cx="${dx}" cy="${dy}" r="5.5" fill="#1E7A1E" stroke="#fff" stroke-width="1.5"/>
-      <text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="24" font-weight="800" fill="#00A2E8">${fmt(actual)}</text>
-      <text x="${lx}" y="${ly-20}" text-anchor="${anchor}" font-size="11" fill="#9aa6b0">อ้อยเข้าหีบ (ตัน)</text>`;
+    const dx=cx+rm*Math.cos(ang), dy=cy-rm*Math.sin(ang);          // จุดหมุดบนแถบ
+    const rin=rm-20; let lx=cx+rin*Math.cos(ang), ly=cy-rin*Math.sin(ang);  // เลขเข้าด้านในนิดหน่อย
+    lx=Math.max(54, Math.min(366, lx));
+    crushedLabel = `<circle cx="${dx}" cy="${dy}" r="5" fill="#1E7A1E" stroke="#fff" stroke-width="1.5"/>
+      <text x="${lx}" y="${ly}" text-anchor="middle" font-size="16" font-weight="800" fill="#00A2E8">${fmt(actual)}</text>
+      <text x="${lx}" y="${ly-14}" text-anchor="middle" font-size="9" fill="#9aa6b0">อ้อยเข้าหีบ (ตัน)</text>`;
   }
   return `<svg viewBox="0 -18 420 256" style="width:100%; max-width:600px;">
     <defs><linearGradient id="${gid}" x1="0%" y1="100%" x2="100%" y2="100%">
@@ -759,6 +761,7 @@ function gaugeSvg(actual, target){
     </linearGradient></defs>
     ${arc(0,1,'#E9E9E9')}
     ${pct>0? arc(0,pct,`url(#${gid})`):''}
+    ${pctText}
     ${remainLabel}
     ${crushedLabel}
   </svg>`;
